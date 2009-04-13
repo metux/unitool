@@ -1,0 +1,8 @@
+#!/bin/bash
+
+export TCPREFIX=/opt/xcompiler/jail/
+export SYSROOT=$TCPREFIX/jail/sys-root
+export CC=$TCPREFIX/bin/gcc
+export LD=$TCPREFIX/bin/ld
+
+/home/devel/projects/unitool-java/run-libtool $*

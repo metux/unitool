@@ -1,0 +1,14 @@
+#!/bin/bash
+
+export SYSROOT=/opt/xcompiler/jail/sys-root
+
+make && \
+    ./run-libtool					\
+	--mode=link /opt/xcompiler/jail/bin/gcc		\
+	-g -O2 -Wall					\
+	-o timescale					\
+	timescale.o					\
+	-L/opt/xcompiler/jail/sys-root/usr/lib		\
+	-L/usr/lib					\
+	-lpthread					\
+	/usr/lib/libpng.la

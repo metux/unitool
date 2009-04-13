@@ -1,0 +1,193 @@
+<project name="UniTool" default="all" basedir=".">
+    <property environment="env" />
+
+    <!-- user configurable locations -->
+    <property name="destdir"         value="" />
+    <property name="prefix"          value="${env.HOME}/.usr/unitool" />
+    <property name="libdir"          value="${prefix}/lib" />
+    <property name="bindir"          value="${prefix}/bin" />
+    <property name="sysconfdir"      value="${prefix}/etc" />
+    <property name="java-runtime"    value="java" />
+    <property name="metux-lib"       value="${env.HOME}/.jar/metux-java.jar" />
+
+    <property name="src"             value="."              />
+    <property name="build"           value=".build"         />
+    <property name="build-lib"       value="${build}/lib"   />
+    <property name="build-tests"     value="${build}/tests" />
+    <property name="jarfile"         value="${build}/unitool.jar" />
+
+    <property name="metux-runtime"   value="${libdir}/metux-java.jar" />
+    <property name="unitool-runtime" value="${libdir}/unitool.jar" />
+    
+    <target name="compile-base">
+	<mkdir dir="${build-lib}" />
+    	<javac destdir="${build-lib}" srcdir="${src}/base" debug="on" classpath="${metux-lib}:.">
+            <include name="CCompilerParam.java"/>
+            <include name="Command.java"/>
+            <include name="EInstallFailed.java"/>
+            <include name="EMissingDBFile.java"/>
+            <include name="EParameterInvalid.java"/>
+            <include name="EParameterMissing.java"/>
+            <include name="EPkgConfigBrokenVariableReference.java"/>
+            <include name="EPkgConfigError.java"/>
+            <include name="EPkgConfigMissingProperty.java"/>
+            <include name="EPkgConfigParseError.java"/>
+            <include name="EPkgConfigUnhandledProperty.java"/>
+            <include name="EUnhandledCompilerFlag.java"/>
+            <include name="EUnitoolError.java"/>
+            <include name="EVersionSyntaxError.java"/>
+<!--            <include name="Hacks.java"/> -->
+            <include name="InstallerParam.java"/>
+            <include name="LibraryInfo.java"/>
+            <include name="LinkerParam.java"/>
+            <include name="ManualPageInfo.java"/>
+            <include name="ObjectInfo.java"/>
+            <include name="PackageInfo.java"/>
+            <include name="ToolConfig.java"/>
+            <include name="ToolParam.java"/>
+            <include name="ToolType.java"/>
+	</javac>
+    </target>
+
+    <target name="compile-db" depends="compile-base">
+	<mkdir dir="${build-lib}" />
+    	<javac destdir="${build-lib}" srcdir="${src}/db" debug="on" classpath="${metux-lib}:${build-lib}:.">
+            <include name="LibraryInfo.java"/>
+            <include name="LoadLibtool.java"/>
+            <include name="LoadLibtoolArchive.java"/>
+            <include name="LoadLibtoolObject.java"/>
+            <include name="LoadPkgConfig.java"/>
+            <include name="ObjectInfo.java"/>
+            <include name="PackageInfo.java"/>
+            <include name="QueryPkgConfig.java"/>
+            <include name="StoreLibtool.java"/>
+            <include name="StoreLibtoolArchive.java"/>
+            <include name="StoreLibtoolObject.java"/>
+            <include name="StorePkgConfig.java"/>
+            <include name="UnitoolConf.java"/>
+	</javac>
+    </target>
+
+    <target name="compile-tools" depends="compile-base,compile-db">
+	<mkdir dir="${build-lib}" />
+    	<javac destdir="${build-lib}" srcdir="${src}/tools" debug="on" classpath="${metux-lib}:${build-lib}:.">
+            <include name="CCompiler.java"/>
+            <include name="Gcc_cmdline.java"/>
+            <include name="LD_cmdline.java"/>
+            <include name="LTLibraryInstaller.java"/>
+            <include name="LinkExecutable.java"/>
+            <include name="LinkSharedLibrary.java"/>
+            <include name="LinkStaticLibrary.java"/>
+            <include name="LinkerBase.java"/>
+	</javac>
+    </target>
+
+    <target name="compile-unitool" depends="compile-base,compile-db">
+	<mkdir dir="${build-lib}" />
+    	<javac destdir="${build-lib}" srcdir="${src}/unitool" debug="on" classpath="${metux-lib}:${build-lib}:.">
+            <include name="Build.java"/>
+            <include name="Install.java"/>
+            <include name="Main.java"/>
+<!--            <include name="PIBuild.java"/> -->
+            <include name="PkgConfigFixup.java"/>
+            <include name="Query.java"/>
+            <include name="Unitool.java"/>
+	</javac>
+    </target>
+
+    <target name="compile-libtool" depends="compile-base,compile-db,compile-tools">
+	<mkdir dir="${build-lib}" />
+    	<javac destdir="${build-lib}" srcdir="${src}/libtool" debug="on" classpath="${metux-lib}:${build-lib}:.">
+            <include name="CmdCompile.java"/>
+            <include name="CmdInstall.java"/>
+            <include name="CmdLink.java"/>
+            <include name="Main.java"/>
+	</javac>
+    </target>
+
+    <target name="compile" depends="compile-base,compile-db,compile-tools,compile-unitool,compile-libtool">
+        <jar jarfile="${jarfile}" basedir="${build-lib}"/>
+    </target>
+
+<!--
+    <target name="compile-tests" depends="link-lib,compile-base,compile-log,compile-propertylist">
+	<mkdir dir="${build-tests}" />
+    	<javac destdir="${build-tests}" srcdir="${src}/tests" debug="on" classpath="${jarfile}">
+	    <include name="_test_util.java"/>
+	    <include name="_test_log.java"/>
+	</javac>
+    </target>
+
+    <target name="run-tests" depends="compile-tests">
+	<java classname="_test_util" classpath="${jarfile}:${build-tests}" /> 
+	<java classname="_test_log" classpath="${jarfile}:${build-tests}" />
+    </target>
+
+-->
+    <target name="run-tests" />
+    <target name="all"     depends="compile,run-tests" />
+
+    <target name="clean">
+	<delete dir="${build-tests}" />
+	<delete dir="${build-lib}"   />
+	<delete dir="${build}"       />
+	<delete file="${jarfile}"    />
+    </target>
+
+    <target name="install" depends="compile,run-tests">
+	<mkdir dir="${destdir}${libdir}" />
+	<mkdir dir="${destdir}${bindir}" />
+	<copy file="${jarfile}"   todir="${destdir}${libdir}" />
+	<copy file="${metux-lib}" todir="${destdir}${libdir}" />
+
+	<!-- install the pkg-config-fixup script -->
+	<delete file="${destdir}${bindir}/pkg-config-fixup" />
+	<echo file="${destdir}${bindir}/pkg-config-fixup">#!/bin/bash
+UNITOOL_PREFIX="${prefix}"
+UNITOOL_JVM="${java-runtime}"
+UNITOOL_MAIN="org.de.metux.unitool.unitool.Main"
+
+export CLASSPATH="$CLASSPATH:${metux-runtime}:${unitool-runtime}"
+
+if [ ! "$SYSROOT" ]; then
+    echo "$0: Missing \$SYSROOT"
+    exit;
+fi
+
+for i in $* ; do 
+    echo "Processing: $i"
+    $UNITOOL_JVM $UNITOOL_MAIN 		\
+	--pkgconfig-fixup 		\
+	source "$i"			\
+	output "$i.out"			\
+	system-root "$SYSROOT"	&amp;&amp; mv "$i.out" "$i"
+done
+	</echo>
+	<chmod file="${destdir}${bindir}/pkg-config-fixup" perm="u=rwx,go=rx" />
+
+	<!-- install the run-unitool script -->
+	<delete file="${destdir}${bindir}/run-unitool" />
+	<echo file="${destdir}${bindir}/run-unitool">#!/bin/bash
+UNITOOL_PREFIX="${prefix}"
+UNITOOL_JVM="${java-runtime}"
+UNITOOL_MAIN="org.de.metux.unitool.unitool.Main"
+
+export CLASSPATH="$CLASSPATH:${metux-runtime}:${unitool-runtime}"
+$UNITOOL_JVM $UNITOOL_MAIN "$@"
+	</echo>
+	<chmod file="${destdir}${bindir}/run-unitool" perm="u=rwx,go=rx" />
+
+
+	<!-- install the run-libtool script -->
+	<delete file="${destdir}${bindir}/run-libtool" />
+	<echo file="${destdir}${bindir}/run-libtool">#!/bin/bash
+UNITOOL_PREFIX="${prefix}"
+UNITOOL_JVM="${java-runtime}"
+UNITOOL_MAIN="org.de.metux.unitool.libtool.Main"
+
+export CLASSPATH="$CLASSPATH:${metux-runtime}:${unitool-runtime}"
+$UNITOOL_JVM $UNITOOL_MAIN "$@"
+	</echo>
+	<chmod file="${destdir}${bindir}/run-libtool" perm="u=rwx,go=rx" />
+    </target>
+</project>
