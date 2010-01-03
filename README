@@ -1,0 +1,20 @@
+Universal Toolchain Wrappers
+-----------------------------
+
+This is a little toolkit that provides an platform-independent
+command line and API for calling toolchain commands (compiler,
+linker, etc), including an simple libtool emulation.
+
+Porcelain scripts are yet missing (coming soon), but unitool is
+already used by treebuild (http://repo.or.cz/w/treebuild.git)
+
+
+Build/Install:
+
+    * `ant compile` compiles the unitool.jar file and places it
+       under ./build/
+    * `ant install` installs it to $HOME/.jar
+
+
+Source tree: http://repo.or.cz/w/unitool.git
+Contact: Enrico Weigelt, metux IT service <weigelt@metux.de>
