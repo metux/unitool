@@ -8,11 +8,14 @@ import java.util.Properties;
 import java.io.File;
 import org.de.metux.util.StrUtil;
 import org.de.metux.unitool.base.ToolConfig;
+import org.de.metux.datasource.Cached_TextDB_Loader;
 
 public class UnitoolConf
 {
 //    public static final String default_tool_config = "/etc/unitool/tools.cf";
-    
+
+    static Cached_TextDB_Loader textdb_loader = new Cached_TextDB_Loader();
+
     static public IPropertylist LoadToolConfig()
     {
 	return LoadToolConfig((String)null);
@@ -41,7 +44,7 @@ public class UnitoolConf
     static public IPropertylist LoadToolConfig(File fn)
     {
 	Propertylist props = new Propertylist();
-	props.loadTextDB_top(fn);
+	props.loadProperties_top(textdb_loader.load(fn));
 	loadEnvironment(props);
 	
 	try {
