@@ -21,7 +21,7 @@
     
     <target name="compile-base">
 	<mkdir dir="${build-lib}" />
-    	<javac destdir="${build-lib}" srcdir="${src}/base" debug="on" classpath="${metux-lib}:.">
+	<javac destdir="${build-lib}" srcdir="${src}/base" debug="on" classpath="${metux-lib}:." includeantruntime="false">
             <include name="CCompilerParam.java"/>
             <include name="Command.java"/>
             <include name="EInstallFailed.java"/>
@@ -51,7 +51,7 @@
 
     <target name="compile-db" depends="compile-base">
 	<mkdir dir="${build-lib}" />
-    	<javac destdir="${build-lib}" srcdir="${src}/db" debug="on" classpath="${metux-lib}:${build-lib}:.">
+	<javac destdir="${build-lib}" srcdir="${src}/db" debug="on" classpath="${metux-lib}:${build-lib}:." includeantruntime="false">
             <include name="LibraryInfo.java"/>
             <include name="LoadLibtool.java"/>
             <include name="LoadLibtoolArchive.java"/>
@@ -70,7 +70,7 @@
 
     <target name="compile-tools" depends="compile-base,compile-db">
 	<mkdir dir="${build-lib}" />
-    	<javac destdir="${build-lib}" srcdir="${src}/tools" debug="on" classpath="${metux-lib}:${build-lib}:.">
+	<javac destdir="${build-lib}" srcdir="${src}/tools" debug="on" classpath="${metux-lib}:${build-lib}:." includeantruntime="false">
             <include name="CCompiler.java"/>
             <include name="Gcc_cmdline.java"/>
             <include name="LD_cmdline.java"/>
@@ -84,7 +84,7 @@
 
     <target name="compile-unitool" depends="compile-base,compile-db">
 	<mkdir dir="${build-lib}" />
-    	<javac destdir="${build-lib}" srcdir="${src}/unitool" debug="on" classpath="${metux-lib}:${build-lib}:.">
+	<javac destdir="${build-lib}" srcdir="${src}/unitool" debug="on" classpath="${metux-lib}:${build-lib}:." includeantruntime="false">
             <include name="Build.java"/>
             <include name="Install.java"/>
             <include name="Main.java"/>
@@ -97,7 +97,7 @@
 
     <target name="compile-libtool" depends="compile-base,compile-db,compile-tools">
 	<mkdir dir="${build-lib}" />
-    	<javac destdir="${build-lib}" srcdir="${src}/libtool" debug="on" classpath="${metux-lib}:${build-lib}:.">
+	<javac destdir="${build-lib}" srcdir="${src}/libtool" debug="on" classpath="${metux-lib}:${build-lib}:." includeantruntime="false">
             <include name="CmdCompile.java"/>
             <include name="CmdInstall.java"/>
             <include name="CmdLink.java"/>
