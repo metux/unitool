@@ -2,26 +2,36 @@
     <property environment="env" />
 
     <!-- user configurable locations -->
-    <property name="destdir"         value="" />
-    <property name="prefix"          value="${env.HOME}/.usr/unitool" />
-    <property name="libdir"          value="${prefix}/lib" />
-    <property name="bindir"          value="${prefix}/bin" />
-    <property name="sysconfdir"      value="${prefix}/etc" />
-    <property name="java-runtime"    value="java" />
-    <property name="metux-lib"       value="${env.HOME}/.jar/metux-java.jar" />
+    <property name="destdir"          value="" />
+    <property name="prefix"           value="${env.HOME}/.usr" />
+    <property name="libdir"           value="${prefix}/lib" />
+    <property name="datadir"          value="${prefix}/share" />
+    <property name="libexecdir"       value="${prefix}/libexec" />
+    <property name="sysconfdir"       value="${prefix}/etc" />
+    <property name="pkgconfigdir"     value="${libdir}/pkgconfig" />
+    <property name="java-runtime"     value="java" />
+    <property name="JMETUX_CLASSPATH" value="${env.JMETUX_CLASSPATH}" />
+
+    <property name="version"         value="0.1.2" />
 
     <property name="src"             value="."              />
     <property name="build"           value=".build"         />
     <property name="build-lib"       value="${build}/lib"   />
     <property name="build-tests"     value="${build}/tests" />
     <property name="jarfile"         value="${build}/unitool.jar" />
+    <property name="pkgconfigfile"   value="jar.unitool.pc" />
 
-    <property name="metux-runtime"   value="${libdir}/metux-java.jar" />
-    <property name="unitool-runtime" value="${libdir}/unitool.jar" />
-    
+    <property name="metux-runtime"   value="${JMETUX_CLASSPATH}" />
+    <property name="unitool-runtime" value="${datadir}/unitool/unitool.jar" />
+
+    <property name="dest_unitool_dir"      value="${destdir}${libexecdir}/unitool" />
+    <property name="dest_run_unitool"      value="${dest_unitool_dir}/run-unitool" />
+    <property name="dest_run_libtool"      value="${dest_unitool_dir}/run-libtool" />
+    <property name="dest_pkg_config_fixup" value="${dest_unitool_dir}/pkg-config-fixup" />
+
     <target name="compile-base">
 	<mkdir dir="${build-lib}" />
-	<javac destdir="${build-lib}" srcdir="${src}/base" debug="on" classpath="${metux-lib}:." includeantruntime="false">
+	<javac destdir="${build-lib}" srcdir="${src}/base" debug="on" classpath="${JMETUX_CLASSPATH}:." includeantruntime="false">
             <include name="CCompilerParam.java"/>
             <include name="Command.java"/>
             <include name="EInstallFailed.java"/>
@@ -51,7 +61,7 @@
 
     <target name="compile-db" depends="compile-base">
 	<mkdir dir="${build-lib}" />
-	<javac destdir="${build-lib}" srcdir="${src}/db" debug="on" classpath="${metux-lib}:${build-lib}:." includeantruntime="false">
+	<javac destdir="${build-lib}" srcdir="${src}/db" debug="on" classpath="${JMETUX_CLASSPATH}:${build-lib}:." includeantruntime="false">
             <include name="LibraryInfo.java"/>
             <include name="LoadLibtool.java"/>
             <include name="LoadLibtoolArchive.java"/>
@@ -70,7 +80,7 @@
 
     <target name="compile-tools" depends="compile-base,compile-db">
 	<mkdir dir="${build-lib}" />
-	<javac destdir="${build-lib}" srcdir="${src}/tools" debug="on" classpath="${metux-lib}:${build-lib}:." includeantruntime="false">
+	<javac destdir="${build-lib}" srcdir="${src}/tools" debug="on" classpath="${JMETUX_CLASSPATH}:${build-lib}:." includeantruntime="false">
             <include name="CCompiler.java"/>
             <include name="Gcc_cmdline.java"/>
             <include name="LD_cmdline.java"/>
@@ -84,7 +94,7 @@
 
     <target name="compile-unitool" depends="compile-base,compile-db">
 	<mkdir dir="${build-lib}" />
-	<javac destdir="${build-lib}" srcdir="${src}/unitool" debug="on" classpath="${metux-lib}:${build-lib}:." includeantruntime="false">
+	<javac destdir="${build-lib}" srcdir="${src}/unitool" debug="on" classpath="${JMETUX_CLASSPATH}:${build-lib}:." includeantruntime="false">
             <include name="Build.java"/>
             <include name="Install.java"/>
             <include name="Main.java"/>
@@ -97,7 +107,7 @@
 
     <target name="compile-libtool" depends="compile-base,compile-db,compile-tools">
 	<mkdir dir="${build-lib}" />
-	<javac destdir="${build-lib}" srcdir="${src}/libtool" debug="on" classpath="${metux-lib}:${build-lib}:." includeantruntime="false">
+	<javac destdir="${build-lib}" srcdir="${src}/libtool" debug="on" classpath="${JMETUX_CLASSPATH}:${build-lib}:." includeantruntime="false">
             <include name="CmdCompile.java"/>
             <include name="CmdInstall.java"/>
             <include name="CmdLink.java"/>
@@ -105,49 +115,48 @@
 	</javac>
     </target>
 
-    <target name="compile" depends="compile-base,compile-db,compile-tools,compile-unitool,compile-libtool">
-        <jar jarfile="${jarfile}" basedir="${build-lib}"/>
+    <target name="${pkgconfigfile}">
+<echo file="${pkgconfigfile}">
+prefix=${prefix}
+jarfile=${unitool-runtime}
+classpath=${JMETUX_CLASSPATH}:${unitool-runtime}
+
+Name: (jar) metux universal toolchain wrapper
+Description: a platform-agnostic wrapper for calling toolchain commands
+Version: ${version}
+Libs:
+Cflags:
+</echo>
     </target>
 
-<!--
-    <target name="compile-tests" depends="link-lib,compile-base,compile-log,compile-propertylist">
-	<mkdir dir="${build-tests}" />
-    	<javac destdir="${build-tests}" srcdir="${src}/tests" debug="on" classpath="${jarfile}">
-	    <include name="_test_util.java"/>
-	    <include name="_test_log.java"/>
-	</javac>
+    <target name="${jarfile}" depends="compile-base,compile-db,compile-tools,compile-unitool,compile-libtool">
+	<jar jarfile="${jarfile}" basedir="${build-lib}" />
     </target>
 
-    <target name="run-tests" depends="compile-tests">
-	<java classname="_test_util" classpath="${jarfile}:${build-tests}" /> 
-	<java classname="_test_log" classpath="${jarfile}:${build-tests}" />
-    </target>
-
--->
-    <target name="run-tests" />
-    <target name="all"     depends="compile,run-tests" />
+    <target name="compile" depends="${jarfile}" />
+    <target name="all"     depends="compile" />
 
     <target name="clean">
 	<delete dir="${build-tests}" />
 	<delete dir="${build-lib}"   />
 	<delete dir="${build}"       />
 	<delete file="${jarfile}"    />
+	<delete file="${pkgconfigfile}" />
     </target>
 
-    <target name="install" depends="compile,run-tests">
-	<mkdir dir="${destdir}${libdir}" />
-	<mkdir dir="${destdir}${bindir}" />
-	<copy file="${jarfile}"   todir="${destdir}${libdir}" />
-	<copy file="${metux-lib}" todir="${destdir}${libdir}" />
+    <target name="install" depends="compile,${pkgconfigfile}">
+	<mkdir dir="${destdir}${datadir}/unitool" />
+	<mkdir dir="${destdir}${libexecdir}/unitool" />
+	<copy file="${jarfile}"   todir="${destdir}${datadir}/unitool" />
 
 	<!-- install the pkg-config-fixup script -->
-	<delete file="${destdir}${bindir}/pkg-config-fixup" />
-	<echo file="${destdir}${bindir}/pkg-config-fixup">#!/bin/bash
+	<delete file="${dest_pkg_config_fixup}" />
+	<echo file="${dest_pkg_config_fixup}">#!/bin/bash
 UNITOOL_PREFIX="${prefix}"
 UNITOOL_JVM="${java-runtime}"
 UNITOOL_MAIN="org.de.metux.unitool.unitool.Main"
 
-export CLASSPATH="$CLASSPATH:${metux-runtime}:${unitool-runtime}"
+export CLASSPATH="$CLASSPATH:${JMETUX_CLASSPATH}:${unitool-runtime}"
 
 if [ ! "$SYSROOT" ]; then
     echo "$0: Missing \$SYSROOT"
@@ -163,31 +172,37 @@ for i in $* ; do
 	system-root "$SYSROOT"	&amp;&amp; mv "$i.out" "$i"
 done
 	</echo>
-	<chmod file="${destdir}${bindir}/pkg-config-fixup" perm="u=rwx,go=rx" />
+	<chmod file="${dest_pkg_config_fixup}" perm="u=rwx,go=rx" />
 
 	<!-- install the run-unitool script -->
-	<delete file="${destdir}${bindir}/run-unitool" />
-	<echo file="${destdir}${bindir}/run-unitool">#!/bin/bash
+	<delete file="${dest_run_unitool}" />
+	<echo file="${dest_run_unitool}">#!/bin/bash
 UNITOOL_PREFIX="${prefix}"
 UNITOOL_JVM="${java-runtime}"
 UNITOOL_MAIN="org.de.metux.unitool.unitool.Main"
 
-export CLASSPATH="$CLASSPATH:${metux-runtime}:${unitool-runtime}"
+export CLASSPATH="$CLASSPATH:${JMETUX_CLASSPATH}:${unitool-runtime}"
 $UNITOOL_JVM $UNITOOL_MAIN "$@"
 	</echo>
-	<chmod file="${destdir}${bindir}/run-unitool" perm="u=rwx,go=rx" />
+	<chmod file="${dest_run_unitool}" perm="u=rwx,go=rx" />
 
 
 	<!-- install the run-libtool script -->
-	<delete file="${destdir}${bindir}/run-libtool" />
-	<echo file="${destdir}${bindir}/run-libtool">#!/bin/bash
+	<delete file="${dest_run_libtool}" />
+	<echo file="${dest_run_libtool}">#!/bin/bash
 UNITOOL_PREFIX="${prefix}"
 UNITOOL_JVM="${java-runtime}"
 UNITOOL_MAIN="org.de.metux.unitool.libtool.Main"
 
-export CLASSPATH="$CLASSPATH:${metux-runtime}:${unitool-runtime}"
+export CLASSPATH="$CLASSPATH:${JMETUX_CLASSPATH}:${unitool-runtime}"
 $UNITOOL_JVM $UNITOOL_MAIN "$@"
 	</echo>
-	<chmod file="${destdir}${bindir}/run-libtool" perm="u=rwx,go=rx" />
+	<chmod file="${dest_run_libtool}" perm="u=rwx,go=rx" />
+
+	<!-- install the pkgconfig descriptor -->
+	<mkdir dir="${destdir}${pkgconfigdir}" />
+	<copy file="${pkgconfigfile}" todir="${destdir}${pkgconfigdir}" />
+
     </target>
+
 </project>
