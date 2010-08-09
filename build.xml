@@ -12,6 +12,11 @@
     <property name="java-runtime"     value="java" />
     <property name="JMETUX_CLASSPATH" value="${env.JMETUX_CLASSPATH}" />
 
+    <property name="script_prefix"           value="${libexecdir}/unitool" />
+    <property name="script_pkg_config_fixup" value="${script_prefix}/pkg-config-fixup" />
+    <property name="script_run_unitool"      value="${script_prefix}/run-unitool" />
+    <property name="script_run_libtool"      value="${script_prefix}/run-libtool" />
+
     <property name="version"         value="0.1.2" />
 
     <property name="src"             value="."              />
@@ -120,6 +125,10 @@
 prefix=${prefix}
 jarfile=${unitool-runtime}
 classpath=${JMETUX_CLASSPATH}:${unitool-runtime}
+script_prefix=${script_prefix}
+script_pkg_config_fixup=${script_pkg_config_fixup}
+script_run_unitool=${script_run_unitool}
+script_run_libtool=${script_run_libtool}
 
 Name: (jar) metux universal toolchain wrapper
 Description: a platform-agnostic wrapper for calling toolchain commands
@@ -133,7 +142,7 @@ Cflags:
 	<jar jarfile="${jarfile}" basedir="${build-lib}" />
     </target>
 
-    <target name="compile" depends="${jarfile}" />
+    <target name="compile" depends="${jarfile},${pkgconfigfile}" />
     <target name="all"     depends="compile" />
 
     <target name="clean">
